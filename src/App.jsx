@@ -1,6 +1,6 @@
 //UseState permite a los componentes de función mantener y actualizar su propio estado interno de manera eficiente, facilitando la creación de interfaces de usuario interactivas y dinámicas
 
-import { useState } from "react"
+import { useState, useEffect} from "react"
 import Header from "./components/Header"
 import Guitar from "./components/Guitar"
 import { db } from "./data/data"
@@ -8,14 +8,22 @@ import { db } from "./data/data"
 
 function App() {
 
-    const [data, setData] = useState(db)
-    const [cart, setCart] = useState([])
+    const initialCart = () => {
+       const localStorageCart = localStorage.getItem('cart')
+       return localStorageCart ? JSON.parse(localStorageCart) : []
+    }
+
+    const [data] = useState(db)
+    const [cart, setCart] = useState(initialCart)
 
     const MAX_ITEMS = 7
     const MINIMUM_ITEMS = 1
 
-    function addToCart(item) {
+    useEffect(() => {
+       localStorage.setItem('cart', JSON.stringify(cart))
+    }, [cart])
 
+    function addToCart(item) {
         const itemExists = cart.findIndex(guitar => guitar.id === item.id)
         if(itemExists >= 0) { // existe en el carrito
           if(cart[itemExists].quantity >= MAX_ITEMS) return
@@ -26,6 +34,7 @@ function App() {
           item.quantity = 1 
           setCart([...cart, item])
         }
+      
       }
 
       function removeFromCart(id) {
@@ -60,6 +69,12 @@ function App() {
       setCart(updatedCart)
     }
 
+    function clearCart() {
+      setCart([])
+    }
+
+    
+
   return (
     <>
     <Header
@@ -67,6 +82,7 @@ function App() {
       removeFromCart={removeFromCart}
       increaseQuantity={increaseQuantity}
       decreaseQuantity={decreaseQuantity}
+      clearCart={clearCart}
     />
 
     <main className="container-xl mt-5">
